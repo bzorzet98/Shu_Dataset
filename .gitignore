@@ -8,9 +8,6 @@ Dataset/*
 001_Processing_Figures/*
 001_Reports_Processing/*
 002_Dataset_Traditional_Feature_Extraction/*
-005_STATISTICAL_SEARCH_FOR_DIFFERENCES_BETWEEN_SEX.ipynb
-008_GENDER_CLASSIFIER.ipynb
-009_GENDER_CLASSIFIER_TRADITIONAL_FEATURE_EXTRACTION.ipynb
 CLASIFICADOR_MI.ipynb
 histograma.png
 img0.png
