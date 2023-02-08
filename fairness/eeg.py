@@ -16,6 +16,32 @@ class Processing:
     def __init(self):
         pass
     
+    @staticmethod
+    def _power_band(X,fs=1.,bands=None):
+        if bands != None:
+            if len(X.shape) == 3:
+                n_0 = X.shape[0]
+                n_1= X.shape[1]
+                n_bands = len(bands)
+                X_bands_power=np.zeros((n_0,n_1,n_bands))
+                #Calculate spectrum power along axis -1
+                freqs , psd_fft = signal.welch(X,fs=fs)
+                it=0
+                for band in bands:
+                    # Define lower and upper limits
+                    low, high = band
+                    # Find intersecting values in frequency vector
+                    idx_delta = np.squeeze(np.logical_and(np.round(freqs) >= low, np.round(freqs) <= high))
+                    #Calculate Power Spectrum 
+                    df=fs/len(freqs)
+                    X_bands_power[:,:,it] = np.sum(psd_fft[:,:,idx_delta],axis=2)*df
+                    it+=1
+                return X_bands_power
+            else:
+                print('No se ha implementado los casos para diferente tamaño de X')
+        else:
+            print('No se implemento el caso general de calculo de la potencia total de la señal')
+    
     @staticmethod 
     def _whitening_data(X, n_epochs):
         X = np.hstack(X)

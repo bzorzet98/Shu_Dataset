@@ -28,13 +28,9 @@ class RegistersShuDataset(Processing):
         self.registers = {}
         self.participants = None
         self.sessions = None
-        self.genders = []
-        self.NM = 0
-        self.NF = 0
-        self.train_participants = None
-        self.validation_participants = None
-        self.data_train = None
-        self.data_validation = None
+        self.flag_band_power = False
+        self.bands_freqs_power = None
+        self.flag_csp= False
         self.csp=None
              
     def load_registers(self, path='', participants=[], sessions=[]):
@@ -56,11 +52,6 @@ class RegistersShuDataset(Processing):
                     if flag_participant:
                         self.registers[participant]['group_medidator'] = data['group_medidator']
                         self.registers[participant]['gender'] = data['gender']
-                        self.genders.append(data['gender'])
-                        if data['gender'] == 'M' : 
-                            self.NM += 1
-                        else:
-                            self.NF += 1
                         self.registers[participant]['id_participant'] = data['id_participant']
                         self.registers[participant]['sfreq'] = data['sfreq']
                         ch_names = data['ch_names']
@@ -76,35 +67,19 @@ class RegistersShuDataset(Processing):
                         self.registers[participant]['n_chans'] = data['data'].shape[1]
                         flag_participant = False
     
-    def split_database(self,percent_train, percent_validation, percent_test = None):
-        if percent_test == None: 
-            self.train_participants, self.validation_participants = train_test_split(np.array(self.participants),train_size= percent_train,
-                                                         test_size= percent_test,
-                                                         stratify= np.array(self.genders))
-        
-    def group_data(self):
-        self.data_train = np.zeros((1,32,1000))
-        self.labels_train = np.zeros((1))
-        self.data_validation = np.zeros((1,32,1000))
-        self.labels_validation = np.zeros((1))
-        for train_participant in self.train_participants:
-            self.data_train = np.concatenate((self.data_train,
-                                              self.registers[train_participant]["ses-01"]['data'],
-                                              self.registers[train_participant]["ses-02"]['data'],
-                                              self.registers[train_participant]["ses-03"]['data'],
-                                              self.registers[train_participant]["ses-04"]['data'],
-                                              self.registers[train_participant]["ses-05"]['data']),axis=0)     
-            self.labels_train =np.concatenate((self.labels_train,
-                                               self.registers[train_participant]["ses-01"]['labels_trials'],
-                                               self.registers[train_participant]["ses-02"]['labels_trials'],
-                                               self.registers[train_participant]["ses-03"]['labels_trials'],
-                                               self.registers[train_participant]["ses-04"]['labels_trials'],
-                                               self.registers[train_participant]["ses-05"]['labels_trials']))  
-        self.data_train = self.data_train[1:,:,:]
-        self.labels_train = self.labels_train[1:]
-        
+    def spectral_band_power(self,bands_freqs=None):
+        if bands_freqs != None:
+            self.flag_band_power = True
+            self.bands_freqs_power = bands_freqs
+            for participant in self.participants:
+                fs = self.registers[participant]['sfreq']
+                for session in self.sessions:
+                    X = self.registers[participant][session]['data']
+                    X_ = self._power_band(X,fs,bands=bands_freqs)
+                    self.registers[participant][session]['data_band_power'] = X_
         
     def csp_per_subject(self,nc=6,savefig=False,path=''):
+        self.flag_csp= True
         data_ = np.zeros((1,32,1000))
         labels_ = np.zeros(1)
         for participant in self.participants:
@@ -140,28 +115,6 @@ class RegistersShuDataset(Processing):
             plt.close()
             data_ = np.zeros((1,32,1000))
             labels_ = np.zeros(1)
-            
-            
-            
-    def csp_fit(self,nc = 6,savefig=False, path=""):
-        self.csp = CSP(n_components = nc)
-        self.csp.fit(self.data_train, self.labels_train, reg='oas')
-        
-    def csp_transform(self):
-        for val_participant in self.validation_participants:
-            self.registers[val_participant]["ses-01"]['data_csp']=self.csp.transform(self.registers[val_participant]["ses-01"]['data'])
-            self.registers[val_participant]["ses-02"]['data_csp']=self.csp.transform(self.registers[val_participant]["ses-02"]['data'])
-            self.registers[val_participant]["ses-03"]['data_csp']=self.csp.transform(self.registers[val_participant]["ses-03"]['data'])
-            self.registers[val_participant]["ses-04"]['data_csp']=self.csp.transform(self.registers[val_participant]["ses-04"]['data'])
-            self.registers[val_participant]["ses-05"]['data_csp']=self.csp.transform(self.registers[val_participant]["ses-05"]['data'])
-            
-        for train_participant in self.train_participants:
-            self.registers[train_participant]["ses-01"]['data_csp']=self.csp.transform(self.registers[train_participant]["ses-01"]['data'])
-            self.registers[train_participant]["ses-02"]['data_csp']=self.csp.transform(self.registers[train_participant]["ses-02"]['data'])
-            self.registers[train_participant]["ses-03"]['data_csp']=self.csp.transform(self.registers[train_participant]["ses-03"]['data'])
-            self.registers[train_participant]["ses-04"]['data_csp']=self.csp.transform(self.registers[train_participant]["ses-04"]['data'])
-            self.registers[train_participant]["ses-05"]['data_csp']=self.csp.transform(self.registers[train_participant]["ses-05"]['data'])
-            
             
     def plot_scatter_csp_per_subject(self,savefig=False,path=''):
         marks=['o','^','s','H','D']
@@ -201,87 +154,29 @@ class RegistersShuDataset(Processing):
             plt.show()
             plt.close()
 
-            
-    def data_pca_register(self,nc=2,plot_variance=False):
-        for participant in self.participants:
-                self.registers[participant]['data_pca'], eig_values= self._pca(self.registers[participant]['data_csp'], n_comp=2)
-                if plot_variance:
-                    fig,ax = plt.subplots()
-                    a=1
-                    for it in range(X.shape[0]):  
-                        x=np.linspace(0,len(eig_values[it]),len(eig_values[it]))
-                        ax.bar(x,eig_values[it],alpha=a)
-                        a-=0.005
-                self.registers[participant]['data_pca_mu']=self.registers[participant]['data_pca'].mean(axis=1)
-                self.registers[participant]['data_pca_sigma']=self.registers[participant]['data_pca'].std(axis=1)          
-    
-    def data_gender(self):
-        it=0
-        self.idx_m=[]
-        self.idx_f=[]
-        for participant in self.participants:
-            if self.registers[participant]['gender'] == 'M':
-                self.idx_m.append(it)
-            else:
-                self.idx_f.append(it)
-            it=it+1
-            
-    def plot_csp_pattern(self, gender = None, ndims=2, method='csp', n_data=None):
-        idx_f = None
-        idx_m = None
-        if method == 'pca':
-            print('No se ha implementado')
-        elif method == 'csp':
-            data2plot = []
-            mu2plot = []
-            sigma2plot = []
-            pts = []
-            it=0
-            if gender == None: 
-                pts = self.participants
-                idx_f = self.idx_f[:n_data]
-                idx_m = self.idx_m[:n_data]
-                title = 'Dispersión CSP M-H'
-            elif gender == 'M':
-                for id in self.idx_m:
-                    pts.append(self.participants[id])
-                idx_m = [0,1]
-                title = 'Dispersión CSP Hombres'
-            else: 
-                for id in self.idx_f:
-                    pts.append(self.participants[id])
-                idx_f = [0,1]
-                title = 'Dispersión CSP Mujeres'
-                
-            for participant in pts:
-                data_ = self.registers[participant]['data_csp'].T
-                data2plot.append(np.array([data_[0,:],data_[-1,:]]))
-                mu2plot.append(data2plot[-1].mean(axis=1))
-                sigma2plot.append(np.cov(data2plot[-1]))
-            # data2plot = np.array(data2plot)
-            # mu2plot = np.array(mu2plot)
-            # sigma2plot = np.array(sigma2plot) 
-            
-            if n_data == None: 
-                plot_scatter_register_bygender(data=data2plot,mu=mu2plot,sigma=sigma2plot,idx_m=idx_m,idx_f=idx_f,title=title)
-            else:
-                plot_scatter_register_bygender(data=data2plot,mu=mu2plot,sigma=sigma2plot,idx_f=idx_f,idx_m=idx_m,title=title)
-
     def save_registers(self,path=''):
         if path == '':
             print('No se ha seleccionado una ruta de guardado')
         else:
             for participant in self.participants:
-                save_path=path+participant+"_task_motorimagery_eeg_preprocessing_csp.mat"
+                if self.flag_band_power:
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_trad_feature.mat"
+                elif self.flag_csp:
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_csp.mat"
                 data_save = {}
                 for session in self.sessions:
-                    data_save[session +'_data_csp']=self.registers[participant][session]['data_csp']
+                    if 'data_csp' in self.registers[participant][session]:
+                        data_save[session +'_data_csp']=self.registers[participant][session]['data_csp']
+                    elif 'data_band_power' in self.registers[participant][session]:
+                        data_save[session +'_data_band_power']=self.registers[participant][session]['data_band_power']
                     data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
+                if self.flag_band_power:
+                    data_save['bands_freqs'] = self.bands_freqs_power
                 data_save['sfreq'] = self.registers[participant]['sfreq'],
-                data_save['age']=self.registers[participant]['age'],
-                data_save['gender']=self.registers[participant]['gender'],
-                data_save['group_medidator']=self.registers[participant]['group_medidator'],
-                data_save['id_participant']=self.registers[participant]['id_participant']
+                data_save['age'] = self.registers[participant]['age'],
+                data_save['gender'] = self.registers[participant]['gender'],
+                data_save['group_medidator'] = self.registers[participant]['group_medidator'],
+                data_save['id_participant'] = self.registers[participant]['id_participant']
                 sio.savemat(save_path, data_save)
         
 class ShuDataset(Preprocessing):
