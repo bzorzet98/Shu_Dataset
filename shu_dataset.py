@@ -28,8 +28,14 @@ class RegistersShuDataset(Processing):
         self.registers = {}
         self.participants = None
         self.sessions = None
+        
         self.flag_band_power = False
+        self.flag_band_power_mean = False
         self.bands_freqs_power = None
+        
+        self.flag_random_extractor = None
+        self.flag_random_extractor_mean = None
+        
         self.flag_csp= False
         self.csp=None
              
@@ -67,16 +73,47 @@ class RegistersShuDataset(Processing):
                         self.registers[participant]['n_chans'] = data['data'].shape[1]
                         flag_participant = False
     
-    def spectral_band_power(self,bands_freqs=None):
+    def spectral_band_power(self, bands_freqs=None, mean_epochs=False):
         if bands_freqs != None:
-            self.flag_band_power = True
             self.bands_freqs_power = bands_freqs
+            if mean_epochs:
+                self.flag_band_power_mean = True
+                for participant in self.participants:
+                    fs = self.registers[participant]['sfreq']
+                    for session in self.sessions:
+                        X = self.registers[participant][session]['data']
+                        # Calculate the mean across de channels 
+                        X = np.mean(X,axis=1)
+                        X_ = self._power_band(X,fs,bands=bands_freqs)
+                        self.registers[participant][session]['data_band_power_mean'] = X_
+            else:
+                self.flag_band_power = True
+                for participant in self.participants:
+                    fs = self.registers[participant]['sfreq']
+                    for session in self.sessions:
+                        X = self.registers[participant][session]['data']
+                        X_ = self._power_band(X,fs,bands=bands_freqs)
+                        self.registers[participant][session]['data_band_power'] = X_
+        
+    def feature_extractor_random(self,n_feature = 6, mean_epochs=False):
+        if mean_epochs:
+            self.flag_random_extractor_mean = True
             for participant in self.participants:
-                fs = self.registers[participant]['sfreq']
                 for session in self.sessions:
                     X = self.registers[participant][session]['data']
-                    X_ = self._power_band(X,fs,bands=bands_freqs)
-                    self.registers[participant][session]['data_band_power'] = X_
+                    # Calculate the mean across de channels 
+                    X = np.mean(X,axis=1)
+                    X_ = self._random_extractor(X , n=6)
+                    self.registers[participant][session]['data_random_mean'] = X_
+        else:
+            self.flag_random_extractor = True
+            for participant in self.participants:
+                for session in self.sessions:
+                    X = self.registers[participant][session]['data']
+                    X_ = self._random_extractor(X , n=6)
+                    self.registers[participant][session]['data_random'] = X_
+    
+        
         
     def csp_per_subject(self,nc=6,savefig=False,path=''):
         self.flag_csp= True
@@ -159,19 +196,34 @@ class RegistersShuDataset(Processing):
             print('No se ha seleccionado una ruta de guardado')
         else:
             for participant in self.participants:
+                data_save = {}
                 if self.flag_band_power:
-                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_trad_feature.mat"
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_band_power_features.mat"
+                    for session in self.sessions:
+                        data_save[session +'_data_band_power']=self.registers[participant][session]['data_band_power']
+                        data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
+                    data_save['bands_freqs'] = self.bands_freqs_power
+                elif self.flag_band_power_mean:
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_band_power_features_mean.mat"
+                    for session in self.sessions:
+                        data_save[session +'_data_band_power_mean']=self.registers[participant][session]['data_band_power_mean']
+                        data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
+                    data_save['bands_freqs'] = self.bands_freqs_power
                 elif self.flag_csp:
                     save_path=path+participant+"_task_motorimagery_eeg_preprocessing_csp.mat"
-                data_save = {}
-                for session in self.sessions:
-                    if 'data_csp' in self.registers[participant][session]:
+                    for session in self.sessions:
                         data_save[session +'_data_csp']=self.registers[participant][session]['data_csp']
-                    elif 'data_band_power' in self.registers[participant][session]:
-                        data_save[session +'_data_band_power']=self.registers[participant][session]['data_band_power']
-                    data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
-                if self.flag_band_power:
-                    data_save['bands_freqs'] = self.bands_freqs_power
+                        data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
+                elif self.flag_random_extractor:
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_random_extractor_feature.mat"
+                    for session in self.sessions:
+                        data_save[session +'_data_random']=self.registers[participant][session]['data_random']
+                        data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']
+                elif self.flag_random_extractor_mean:
+                    save_path=path+participant+"_task_motorimagery_eeg_preprocessing_random_extractor_feature_mean.mat"
+                    for session in self.sessions:
+                        data_save[session +'_data_random_mean']=self.registers[participant][session]['data_random_mean']
+                        data_save[session +'_labels_trials']=self.registers[participant][session]['labels_trials']            
                 data_save['sfreq'] = self.registers[participant]['sfreq'],
                 data_save['age'] = self.registers[participant]['age'],
                 data_save['gender'] = self.registers[participant]['gender'],

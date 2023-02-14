@@ -1,4 +1,5 @@
 import numpy as np
+from random import sample
 import matplotlib.pyplot as plt
 from .functions import * 
 from .functions_mne import * 
@@ -16,6 +17,25 @@ class Processing:
     def __init(self):
         pass
     
+    @staticmethod
+    def _random_extractor(X,n=6):
+        if len(X.shape) == 3:
+                n_0 = X.shape[0]
+                n_1= X.shape[1]
+                X_random = np.zeros((n_0,n_1,n))
+                for it0 in range(n_0):
+                    for it1 in range(n_1):
+                        X_random[it0,it1,:]=sample(X[it0,it1,:].tolist(), n)                
+                return X_random
+        elif len(X.shape) == 2:
+            n_0 = X.shape[0]
+            X_random = np.zeros((n_0,n))
+            for it0 in range(n_0):
+                X_random[it0,:]=sample(X[it0,:].tolist(), n)                
+            return X_random
+        else:
+            print('No se ha implementado los casos de tamaño de X de 1 dimensión')
+            
     @staticmethod
     def _power_band(X,fs=1.,bands=None):
         if bands != None:
@@ -37,8 +57,25 @@ class Processing:
                     X_bands_power[:,:,it] = np.sum(psd_fft[:,:,idx_delta],axis=2)*df
                     it+=1
                 return X_bands_power
+            elif len(X.shape) == 2:
+                n_0 = X.shape[0]
+                n_bands = len(bands)
+                X_bands_power=np.zeros((n_0,n_bands))
+                #Calculate spectrum power along axis -1
+                freqs , psd_fft = signal.welch(X,fs=fs)
+                it=0
+                for band in bands:
+                    # Define lower and upper limits
+                    low, high = band
+                    # Find intersecting values in frequency vector
+                    idx_delta = np.squeeze(np.logical_and(np.round(freqs) >= low, np.round(freqs) <= high))
+                    #Calculate Power Spectrum 
+                    df=fs/len(freqs)
+                    X_bands_power[:,it] = np.sum(psd_fft[:,idx_delta],axis=1)*df
+                    it+=1
+                return X_bands_power
             else:
-                print('No se ha implementado los casos para diferente tamaño de X')
+                print('No se ha implementado los casos de tamaño de X de 1 dimensión')
         else:
             print('No se implemento el caso general de calculo de la potencia total de la señal')
     
