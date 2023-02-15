@@ -21,6 +21,25 @@ def standar_score(X):
                 sigma=np.std(X,axis=2,keepdims=True,dtype=float)
                 Z=(X-mu)/sigma
         return Z        
+
+def dkls(mu_p,mu_q,sigma_p,sigma_q):
+    k=len(mu_p)
+    
+    inv_sigma_p=np.linalg.inv(sigma_p)
+    inv_sigma_q=np.linalg.inv(sigma_q)
+    
+    term0_a=(mu_p - mu_q).T
+    term0_b=inv_sigma_p + inv_sigma_q
+    term0_c=mu_p - mu_q
+    term1 = term0_a @ term0_b @ term0_c
+    
+    term2= np.trace( inv_sigma_q @ sigma_p )
+    
+    term3=np.trace( inv_sigma_p @ sigma_q )
+    
+    D_kls =(term1 + term2+ term3  - 2*k)/4
+    
+    return D_kls
 #---------------------------------------------------------------
 def Mean_Remove(X):
         if len(X.shape)>1:

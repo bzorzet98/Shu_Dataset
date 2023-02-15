@@ -8,6 +8,8 @@ Dataset/*
 001_Processing_Figures/*
 001_Reports_Processing/*
 002_Dataset_Traditional_Feature_Extraction/*
+003_Dataset_Traditional_Feature_Extraction_6_Feature/*
+004_Dataset_6_Random_Feature_Extraction/*
 CLASIFICADOR_MI.ipynb
 histograma.png
 img0.png
