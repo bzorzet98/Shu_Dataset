@@ -15,7 +15,7 @@ from fairness.functions import *
 from mne.decoding import  CSP
 #%% Load data
 path_root = "/home/bruno/Academico/Doctorado/Neuro_Fairness/Shu_Dataset/"
-dataset_field="001_Dataset_CSP_per_subject/"
+dataset_field="001_Dataset_CSP/"
 save_figures = True
 figures_path_root = path_root + "005_Figures/"
 tables_path_root = path_root + "005_Tables/"
