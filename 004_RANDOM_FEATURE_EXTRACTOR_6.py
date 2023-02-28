@@ -24,8 +24,9 @@ registers = RegistersShuDataset()
 registers.load_registers(path = path_root + dataset_field, participants = participants, sessions = sessions)
 
 # -------------------- Procesamiento-------------------------#
-# 1. Extraemos 6 caracteristicas aleatorias
-registers.feature_extractor_random(mean_epochs=True)
+# 1. Calculamos la potencia de cada epoca en las bandas de frecuencia establecidas y obtenemos los valores de forma aleatoria
+bands_freqs = [(8,12),(12,16),(16,20),(20,24),(24,28),(28,32)]
+registers.spectral_band_power(bands_freqs=bands_freqs,mean_across_ch=False,random_features=True)
 # 2. Guardamos los datos
 registers.save_registers(path=save_path)
 

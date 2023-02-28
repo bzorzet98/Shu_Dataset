@@ -73,10 +73,10 @@ class RegistersShuDataset(Processing):
                         self.registers[participant]['n_chans'] = data['data'].shape[1]
                         flag_participant = False
     
-    def spectral_band_power(self, bands_freqs=None, mean_epochs=False):
+    def spectral_band_power(self, bands_freqs=None, mean_across_ch=False, random_features=False):
         if bands_freqs != None:
             self.bands_freqs_power = bands_freqs
-            if mean_epochs:
+            if mean_across_ch:
                 self.flag_band_power_mean = True
                 for participant in self.participants:
                     fs = self.registers[participant]['sfreq']
@@ -86,6 +86,17 @@ class RegistersShuDataset(Processing):
                         X = np.mean(X,axis=1)
                         X_ = self._power_band(X,fs,bands=bands_freqs)
                         self.registers[participant][session]['data_band_power_mean'] = X_
+            elif random_features:
+                self.flag_random_extractor = True
+                for participant in self.participants:
+                    fs = self.registers[participant]['sfreq']
+                    for session in self.sessions:
+                        X = self.registers[participant][session]['data']
+                        X_ = self._power_band(X,fs,bands=bands_freqs)
+                        # Compact dimension
+                        X_ =X_.reshape((X_.shape[0],X_.shape[1]*X_.shape[2]))
+                        X_ = self._random_extractor(X_ , n=6)
+                        self.registers[participant][session]['data_random'] = X_
             else:
                 self.flag_band_power = True
                 for participant in self.participants:
