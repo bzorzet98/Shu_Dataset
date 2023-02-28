@@ -1,4 +1,4 @@
-name: prueba
+name: fairness1.0
 channels:
   - anaconda
   - conda-forge

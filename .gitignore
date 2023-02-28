@@ -1,5 +1,6 @@
 __pycache__/*
 Dataset/*
+001_Dataset_CSP/*
 000_Dataset_Preprocessing/*
 000_Preprocessing_Figures/*
 000_Preprocessing_Tables/*
@@ -13,3 +14,4 @@ Dataset/*
 CLASIFICADOR_MI.ipynb
 histograma.png
 img0.png
+acc_test_prueba_borrar.csv
