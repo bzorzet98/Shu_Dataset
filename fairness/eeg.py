@@ -13,6 +13,7 @@ from mne.decoding import CSP
 import scipy.io as sio
 from scipy import signal
 
+
 class Processing:
     def __init(self):
         pass

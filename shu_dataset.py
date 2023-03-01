@@ -29,6 +29,7 @@ class RegistersShuDataset(Processing):
         self.participants = None
         self.sessions = None
         
+        
         self.flag_band_power = False
         self.flag_band_power_mean = False
         self.bands_freqs_power = None
