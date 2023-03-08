@@ -21,3 +21,10 @@ CARPETAS :
 * 001_Processing_XXXX: las carpetas que cuentan con las figura y reportes obtenidas de los scripts 001_PROCESSING_XXXXXX.
 * 002_Dataset_CSP: es la carpeta que contiene la base de datos con los registros procesados por el script 001_PROCESSING_CSP_PER_SUBJECT.py
 
+NOMENCLATURA: 
+
+* Las carpetas que poseen los archivos y bases de datos comienzan con el nombre DATASET_(EXPLICACION DEL TIPO DE DATO)
+* Los scripts .py y .ipynb, que contienen los experimentos realizados con la base de datos comienzan con EXP_(EXPLICACION DEL EXPERIMENTO)
+* Los scripts que procesen base de datos para generar otras podificadas comienzan con PROC_(EXPLICACION DEL PROCESAMIENTO)
+* Los scripts que generen reportes de las rutinas comienzan con REP_
+

@@ -1,0 +1,4 @@
+,Filtro,Tipo,Funcion,Fc,Orden
+0,High-Pass,IIR,Butterworth,1.0,5
+1,Low-Pass,IIR,Butterworth,43.0,5
+2,Notch,IIR,,50.0,20.0

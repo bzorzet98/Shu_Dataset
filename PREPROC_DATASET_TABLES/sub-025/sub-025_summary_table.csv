@@ -1,0 +1,6 @@
+,Sesiones,CH malos z-score,Epocas Malas,Método ICA,ICA_EOG_idx,ICA_EMG_idx,Epocas Malas
+0,ses-01,None,None,FastICA-mne,"[26, 6, 11, 3]","[13, 15, 27, 28, 29, 30, 31]",[31]
+1,ses-02,None,None,FastICA-mne,"[10, 9, 26]","[13, 18, 29, 30, 31]",None
+2,ses-03,None,None,FastICA-mne,"[5, 9, 2, 3]","[0, 29, 30, 31]",None
+3,ses-04,None,None,FastICA-mne,"[10, 22, 0, 7]","[19, 28, 29, 30, 31]",None
+4,ses-05,None,None,FastICA-mne,"[16, 18]","[13, 22, 29, 30]",None
