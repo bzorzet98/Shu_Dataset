@@ -1,0 +1,4 @@
+,statistics,p-value,H0,Description
+Female - Male,0.9979359395747981,1.1822487479494643e-177,False,"Reject H0, distribution is not normal(p < 0.05)"
+Female - Female,0.991660917361085,1.2440456590398516e-137,False,"Reject H0, distribution is not normal(p < 0.05)"
+Male - Male,0.9736534457062458,1.310654756833395e-123,False,"Reject H0, distribution is not normal(p < 0.05)"

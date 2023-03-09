@@ -1,0 +1,3 @@
+,statics,p-value,H0,Description
+Female - Male / Male - Male,2705.0,0.600809824553661,True,"Accept H0,  two distribution maybe have equal mean(p > 0.05)"
+Female - Male / Female - Female,2330.0,0.49050944294827215,True,"Accept H0,  two distribution maybe have equal mean(p > 0.05)"
