@@ -103,7 +103,7 @@ info_exp = {}
 
 for it in range(N_exp):
     dic_aux = {}
-
+    index_male_ = index_male.copy()
     X_train = None
     labels_train = None
     idx_male = id_male.copy()
@@ -151,14 +151,14 @@ for it in range(N_exp):
         matrix_cov_csp[:,:,it_] = np.cov(data_csp[participant].T)
         it_ = it_+1
 
-    means_male_csp = matrix_mean_csp[:,index_male].copy()
+    means_male_csp = matrix_mean_csp[:,index_male_].copy()
     mean_male = means_male_csp.mean(axis=1,keepdims=True)
 
     dist_males_mean = np.linalg.norm(means_male_csp - mean_male,axis = 0)
     idx_male_exclude = dist_males_mean.argmax()
     print(f'El sujeto que es excluido del análisis por tener una distancia con respecto a la media es {id_male[idx_male_exclude]}')
-    dic_aux['EXCLUDE PARTICIPANT'] = idx_male_exclude
-
+    dic_aux['EXCLUDE PARTICIPANT'] = id_male[idx_male_exclude]
+    index_male_.remove(index_male_[idx_male_exclude])
 
     D_KLS=np.zeros((len(participants),len(participants)))
     for it0 in range(0,len(participants)-1):
@@ -175,13 +175,13 @@ for it in range(N_exp):
     info_exp[f'exp_{it+1}'] = {'General info':dic_aux, 'DKLS':D_KLS}
 
     D_KLS_MF = []
-    for idx_m in index_male:
+    for idx_m in index_male_:
         for idx_f in index_female:
             if D_KLS[idx_m,idx_f]!=0:
                 D_KLS_MF.append(D_KLS[idx_m,idx_f])
                 
     for idx_m in index_female:
-        for idx_h in index_male:
+        for idx_h in index_male_:
             if D_KLS[idx_m,idx_h]!=0:
                 D_KLS_MF.append(D_KLS[idx_m,idx_h])
 
@@ -190,8 +190,8 @@ for it in range(N_exp):
     
     D_KLS_MM = []
 
-    for idx_m0 in index_male:
-        for idx_m1 in index_male:
+    for idx_m0 in index_male_:
+        for idx_m1 in index_male_:
             if D_KLS[idx_m0,idx_m1]!=0:
                 D_KLS_MM.append(D_KLS[idx_m0,idx_m1])
     D_KLS_MM=np.array(D_KLS_MM)
